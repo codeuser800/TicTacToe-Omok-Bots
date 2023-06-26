@@ -66,9 +66,17 @@ let available_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
-  ignore game_kind;
-  ignore pieces;
-  failwith "Implement me!"
+  match game_kind with
+  | Game_kind.Tic_tac_toe ->
+    let board_1 =
+      List.init 3 ~f:(fun row ->
+        List.init 3 ~f:(fun col -> { Position.row; column = col }))
+    in
+    let board = List.concat board_1 in
+    List.filter board ~f:(fun curr_piece ->
+      let map_find = Map.find pieces curr_piece in
+      match map_find with Some _ -> false | None -> true)
+  | _ -> []
 ;;
 
 (* Exercise 2.
@@ -208,16 +216,26 @@ let%expect_test "print_non_win" =
 ;;
 
 (* After you've implemented [available_moves], uncomment these tests! *)
-(* let%expect_test "yes available_moves" = let (moves : Position.t list) =
-   available_moves ~game_kind:non_win.game_kind ~pieces:non_win.pieces |>
-   List.sort ~compare:Position.compare in print_s [%sexp (moves : Position.t
-   list)]; [%expect {| (((row 0) (column 1)) ((row 0) (column 2)) ((row 1)
-   (column 1)) ((row 1) (column 2)) ((row 2) (column 1))) |}] ;;
+let%expect_test "yes available_moves" =
+  let (moves : Position.t list) =
+    available_moves ~game_kind:non_win.game_kind ~pieces:non_win.pieces
+    |> List.sort ~compare:Position.compare
+  in
+  print_s [%sexp (moves : Position.t list)];
+  [%expect
+    {|
+   (((row 0) (column 1)) ((row 0) (column 2)) ((row 1) (column 1))
+    ((row 1) (column 2)) ((row 2) (column 1))) |}]
+;;
 
-   let%expect_test "no available_moves" = let (moves : Position.t list) =
-   available_moves ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces |>
-   List.sort ~compare:Position.compare in print_s [%sexp (moves : Position.t
-   list)]; [%expect {| () |}] ;; *)
+let%expect_test "no available_moves" =
+  let (moves : Position.t list) =
+    available_moves ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces
+    |> List.sort ~compare:Position.compare
+  in
+  print_s [%sexp (moves : Position.t list)];
+  [%expect {| () |}]
+;;
 
 (* When you've implemented the [evaluate] function, uncomment the next two
    tests! *)
