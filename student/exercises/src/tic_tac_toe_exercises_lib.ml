@@ -154,7 +154,7 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
       List.init 3 ~f:(fun col -> { Position.row; column = col }))
   in
   let board = List.concat board_1 in
-  List.fold board ~init:Evaluation.Game_continues ~f:(fun position -> if 
+  List.fold board ~init:Evaluation.Game_continues ~f:(fun acc position -> if 
       (eval_helper
         ~pieces:pieces
         ~game_kind:game_kind
@@ -182,7 +182,7 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
         ~num_steps:3
         ~direction:"DIAG_LEFT"
         ~piece:Piece.O
-        ~curr_pos:(position)) then Evaluation.Game_over Piece.0 else Evaluation.Game_continues)
+        ~curr_pos:(position)) then Evaluation.Game_over {winner=Piece.0} else (if match acc with | Evaluation.Game_over -> Evaluation.Game_over | _ -> Evaluation.Game_continues)
 
   
 ;;
