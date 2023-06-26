@@ -83,15 +83,111 @@ let available_moves
 
    For instructions on implemeting this refer to the README.
 
+   For every position --> eval_helper for all 4 directions --> return true if 1 of them is true
+
    After you are done with this implementation, you can uncomment out
    "evaluate" test cases found below in this file. *)
+
+(*call this function for every single position in the board*)
+let rec eval_helper
+  ~(pieces : Piece.t Position.Map.t)
+  ~(game_kind : Game_kind.t)
+  ~(num_steps : int)
+  ~(direction : string)
+  ~(piece : Piece.t)
+  ~(curr_pos : Position.t)
+  : bool
+  =
+  if not (Position.in_bounds curr_pos ~game_kind)
+  then false
+  else if num_steps = 0
+  then true
+  else (
+    let piece_find = Map.find pieces curr_pos in
+    match piece_find with
+    | None -> false
+    | Some piece_found ->
+      if not (Piece.equal piece_found piece)
+      then false
+      else (
+        match direction with
+        | "ROW" ->
+          eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.right curr_pos)
+        | "COL" ->
+          eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos)
+        | "DIAG_RIGHT" ->
+          eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos |> Position.right)
+        | "DIAG_LEFT" ->
+          eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos |> Position.left)
+        | _ -> false))
+;;
+
 let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
   : Evaluation.t
   =
-  ignore pieces;
-  ignore game_kind;
-  failwith "Implement me!"
+  let board_1 =
+    List.init 3 ~f:(fun row ->
+      List.init 3 ~f:(fun col -> { Position.row; column = col }))
+  in
+  let board = List.concat board_1 in
+  List.fold board ~init:Evaluation.Game_continues ~f:(fun position -> if 
+      (eval_helper
+        ~pieces:pieces
+        ~game_kind:game_kind
+        ~num_steps:3
+        ~direction:"ROW"
+        ~piece:Piece.O
+        ~curr_pos:(position)
+    || eval_helper
+        ~pieces:pieces
+        ~game_kind:game_kind
+        ~num_steps:3
+        ~direction:"COL"
+        ~piece:Piece.O
+        ~curr_pos:(position)
+    || eval_helper
+        ~pieces:pieces
+        ~game_kind:game_kind
+        ~num_steps:3
+        ~direction:"DIAG_RIGHT"
+        ~piece:Piece.O
+        ~curr_pos:(position)
+    || eval_helper
+        ~pieces:pieces
+        ~game_kind:game_kind
+        ~num_steps:3
+        ~direction:"DIAG_LEFT"
+        ~piece:Piece.O
+        ~curr_pos:(position)) then Evaluation.Game_over Piece.0 else Evaluation.Game_continues)
+
+  
 ;;
+
+
 
 (* Exercise 3. *)
 let winning_moves
