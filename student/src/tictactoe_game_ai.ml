@@ -99,13 +99,39 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
     ~pieces:game_state.pieces
 ;;
 
-let rec minimax ~(game_kind:Game_kind.t) ~(me:Piece.t) ~(pieces:Piece.t Position.Map.t) ~(depth:int) ~(maximizing:bool) ~(curr_pos:Position.t) = 
-  let available_moves = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in 
-  if (depth = 0 || (match available_moves with | [] -> true | _ -> false))
-    then score ~me ~game_kind ~pieces
+let rec minimax
+  ~(game_kind : Game_kind.t)
+  ~(me : Piece.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(depth : int)
+  ~(maximizing : bool)
+  =
+  let available_moves =
+    Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces
+  in
+  if depth = 0 || match available_moves with [] -> true | _ -> false
+  then score ~me ~game_kind ~pieces
   else if maximizing
-    then List.fold available_moves ~init:(Float.neg_infinity) ~f (fun value move -> ) 
-else
-    DO_SOMETHING
-
+  then
+    List.fold available_moves ~init:Float.neg_infinity ~f:(fun value move ->
+      let new_value =
+        minimax
+          ~game_kind
+          ~me
+          ~pieces:(Map.set pieces ~key:move ~data:me)
+          ~depth:(depth - 1)
+          ~maximizing:(not maximizing)
+      in
+      if Float.(new_value > value) then new_value else value)
+  else
+    List.fold available_moves ~init:Float.infinity ~f:(fun value move ->
+      let new_value =
+        minimax
+          ~game_kind
+          ~me
+          ~pieces:(Map.set pieces ~key:move ~data:me)
+          ~depth:(depth - 1)
+          ~maximizing:(not maximizing)
+      in
+      if Float.(new_value < value) then new_value else value)
 ;;
