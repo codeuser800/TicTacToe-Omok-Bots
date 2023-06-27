@@ -55,10 +55,12 @@ let pick_winning_move_or_block_if_possible_strategy
   ~(pieces : Piece.t Position.Map.t)
   : Position.t
   =
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  failwith "Implement me!"
+  let block_moves =
+    Tic_tac_toe_exercises_lib.losing_moves ~me ~game_kind ~pieces
+  in
+  match block_moves with
+  | [] -> pick_winning_move_if_possible_strategy ~me ~game_kind ~pieces
+  | _ -> List.random_element_exn block_moves
 ;;
 
 (* disables unused warning. Feel free to delete once it's used. *)
