@@ -40,11 +40,11 @@ let win_for_x =
   |> place_piece ~piece:Piece.O ~position:{ Position.row = 1; column = 0 }
   |> place_piece ~piece:Piece.X ~position:{ Position.row = 2; column = 2 }
   |> place_piece ~piece:Piece.O ~position:{ Position.row = 2; column = 0 }
-  |> place_piece ~piece:Piece.X ~position:{ Position.row = 2; column = 1 }
-  |> place_piece ~piece:Piece.O ~position:{ Position.row = 1; column = 1 }
-  |> place_piece ~piece:Piece.X ~position:{ Position.row = 0; column = 2 }
+  |> place_piece ~piece:Piece.O ~position:{ Position.row = 2; column = 1 }
+  |> place_piece ~piece:Piece.X ~position:{ Position.row = 1; column = 1 }
+  |> place_piece ~piece:Piece.O ~position:{ Position.row = 0; column = 2 }
   |> place_piece ~piece:Piece.O ~position:{ Position.row = 0; column = 1 }
-  |> place_piece ~piece:Piece.X ~position:{ Position.row = 1; column = 2 }
+  |> place_piece ~piece:Piece.O ~position:{ Position.row = 1; column = 2 }
 ;;
 
 let non_win =
@@ -83,7 +83,8 @@ let available_moves
 
    For instructions on implemeting this refer to the README.
 
-   For every position --> eval_helper for all 4 directions --> return true if 1 of them is true
+   For every position --> eval_helper for all 4 directions --> return true if
+   1 of them is true
 
    After you are done with this implementation, you can uncomment out
    "evaluate" test cases found below in this file. *)
@@ -98,10 +99,10 @@ let rec eval_helper
   ~(curr_pos : Position.t)
   : bool
   =
-  if not (Position.in_bounds curr_pos ~game_kind)
-  then false
-  else if num_steps = 0
+  if num_steps = 0
   then true
+  else if not (Position.in_bounds curr_pos ~game_kind)
+  then false
   else (
     let piece_find = Map.find pieces curr_pos in
     match piece_find with
@@ -120,6 +121,8 @@ let rec eval_helper
             ~piece
             ~curr_pos:(Position.right curr_pos)
         | "COL" ->
+          (* print_string (string_of_int num_steps); print_string
+             (Position.to_string curr_pos); *)
           eval_helper
             ~pieces
             ~game_kind
@@ -154,40 +157,90 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
       List.init 3 ~f:(fun col -> { Position.row; column = col }))
   in
   let board = List.concat board_1 in
-  List.fold board ~init:Evaluation.Game_continues ~f:(fun acc position -> if 
-      (eval_helper
-        ~pieces:pieces
-        ~game_kind:game_kind
-        ~num_steps:3
-        ~direction:"ROW"
-        ~piece:Piece.O
-        ~curr_pos:(position)
-    || eval_helper
-        ~pieces:pieces
-        ~game_kind:game_kind
-        ~num_steps:3
-        ~direction:"COL"
-        ~piece:Piece.O
-        ~curr_pos:(position)
-    || eval_helper
-        ~pieces:pieces
-        ~game_kind:game_kind
-        ~num_steps:3
-        ~direction:"DIAG_RIGHT"
-        ~piece:Piece.O
-        ~curr_pos:(position)
-    || eval_helper
-        ~pieces:pieces
-        ~game_kind:game_kind
-        ~num_steps:3
-        ~direction:"DIAG_LEFT"
-        ~piece:Piece.O
-        ~curr_pos:(position)) then Evaluation.Game_over {winner=Piece.0} else (if match acc with | Evaluation.Game_over -> Evaluation.Game_over | _ -> Evaluation.Game_continues)
-
-  
+  let check_x_win =
+    List.fold board ~init:Evaluation.Game_continues ~f:(fun acc position ->
+      if eval_helper
+           ~pieces
+           ~game_kind
+           ~num_steps:3
+           ~direction:"ROW"
+           ~piece:Piece.O
+           ~curr_pos:position
+         || eval_helper
+              ~pieces
+              ~game_kind
+              ~num_steps:3
+              ~direction:"COL"
+              ~piece:Piece.O
+              ~curr_pos:position
+         || eval_helper
+              ~pieces
+              ~game_kind
+              ~num_steps:3
+              ~direction:"DIAG_RIGHT"
+              ~piece:Piece.O
+              ~curr_pos:position
+         || eval_helper
+              ~pieces
+              ~game_kind
+              ~num_steps:3
+              ~direction:"DIAG_LEFT"
+              ~piece:Piece.O
+              ~curr_pos:position
+      then Evaluation.Game_over { winner = Some Piece.O }
+      else (
+        match acc with
+        | Evaluation.Game_over { winner = Some Piece.O } ->
+          Evaluation.Game_over { winner = Some Piece.O }
+        | Evaluation.Game_continues -> Evaluation.Game_continues
+        | Evaluation.Illegal_state -> Evaluation.Illegal_state
+        | Evaluation.Game_over _ -> Evaluation.Illegal_state))
+  in
+  List.fold board ~init:check_x_win ~f:(fun acc position ->
+    if eval_helper
+         ~pieces
+         ~game_kind
+         ~num_steps:3
+         ~direction:"ROW"
+         ~piece:Piece.X
+         ~curr_pos:position
+       || eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:3
+            ~direction:"COL"
+            ~piece:Piece.X
+            ~curr_pos:position
+       || eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:3
+            ~direction:"DIAG_RIGHT"
+            ~piece:Piece.X
+            ~curr_pos:position
+       || eval_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:3
+            ~direction:"DIAG_LEFT"
+            ~piece:Piece.X
+            ~curr_pos:position
+    then (
+      match acc with
+      | Evaluation.Game_over { winner = Some Piece.O } ->
+        Evaluation.Illegal_state
+      | Evaluation.Illegal_state -> Evaluation.Illegal_state
+      | _ -> Evaluation.Game_over { winner = Some Piece.X })
+    else (
+      match acc with
+      | Evaluation.Game_over { winner = Some Piece.X } ->
+        Evaluation.Game_over { winner = Some Piece.X }
+      | Evaluation.Game_over { winner = Some Piece.O } ->
+        Evaluation.Game_over { winner = Some Piece.O }
+      | Evaluation.Game_continues -> Evaluation.Game_continues
+      | Evaluation.Illegal_state -> Evaluation.Illegal_state
+      | _ -> Evaluation.Game_continues))
 ;;
-
-
 
 (* Exercise 3. *)
 let winning_moves
@@ -335,13 +388,20 @@ let%expect_test "no available_moves" =
 
 (* When you've implemented the [evaluate] function, uncomment the next two
    tests! *)
-(* let%expect_test "evalulate_win_for_x" = print_endline (evaluate
-   ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces |>
-   Evaluation.to_string); [%expect {| (Win (X)) |}] ;;
 
-   let%expect_test "evalulate_non_win" = print_endline (evaluate
-   ~game_kind:non_win.game_kind ~pieces:non_win.pieces |>
-   Evaluation.to_string); [%expect {| Game_continues |}] ;; *)
+let%expect_test "evalulate_win_for_x" =
+  print_endline
+    (evaluate ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces
+     |> Evaluation.to_string);
+  [%expect {| (Win (X)) |}]
+;;
+
+let%expect_test "evalulate_non_win" =
+  print_endline
+    (evaluate ~game_kind:non_win.game_kind ~pieces:non_win.pieces
+     |> Evaluation.to_string);
+  [%expect {| Game_continues |}]
+;;
 
 (* When you've implemented the [winning_moves] function, uncomment this
    test! *)
