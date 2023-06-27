@@ -81,24 +81,6 @@ let score
 
 let _ = score
 
-(* [compute_next_move] is your Game AI's function.
-
-   [game_ai.exe] will connect, communicate, and play with the game server,
-   and will use [compute_next_move] to pick which pieces to put on your
-   behalf.
-
-   [compute_next_move] is only called whenever it is your turn, the game
-   isn't yet over, so feel free to raise in cases where there are no
-   available spots to pick. *)
-let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
-  : Position.t
-  =
-  pick_winning_move_or_block_if_possible_strategy
-    ~me
-    ~game_kind:game_state.game_kind
-    ~pieces:game_state.pieces
-;;
-
 let rec minimax
   ~(game_kind : Game_kind.t)
   ~(me : Piece.t)
@@ -134,4 +116,36 @@ let rec minimax
           ~maximizing:(not maximizing)
       in
       if Float.(new_value < value) then new_value else value)
+;;
+
+(* [compute_next_move] is your Game AI's function.
+
+   [game_ai.exe] will connect, communicate, and play with the game server,
+   and will use [compute_next_move] to pick which pieces to put on your
+   behalf.
+
+   [compute_next_move] is only called whenever it is your turn, the game
+   isn't yet over, so feel free to raise in cases where there are no
+   available spots to pick. *)
+let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
+  : Position.t
+  =
+  let available_moves =
+    Tic_tac_toe_exercises_lib.available_moves
+      ~game_kind:game_state.game_kind
+      ~pieces:game_state.pieces
+  in
+  List.fold
+    available_moves
+    ~init:{ Position.row = 0; column = 0 }
+    ~f:(fun best_move potential_move ->
+    let score =
+      minimax
+        ~game_kind:game_state.game_kind
+        ~me
+        ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
+        ~depth:4
+        ~maximizing:true
+    in
+    if Float.( = ) score Float.infinity then potential_move else best_move)
 ;;
