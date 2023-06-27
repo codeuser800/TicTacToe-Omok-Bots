@@ -72,10 +72,11 @@ let score
   ~(pieces : Piece.t Position.Map.t)
   : float
   =
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  0.0
+  let score = Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces in
+  match score with
+  | Game_over { winner = Some someone } ->
+    if Piece.equal someone me then Float.infinity else Float.neg_infinity
+  | _ -> 0.0
 ;;
 
 let _ = score
@@ -96,4 +97,15 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
     ~me
     ~game_kind:game_state.game_kind
     ~pieces:game_state.pieces
+;;
+
+let rec minimax ~(game_kind:Game_kind.t) ~(me:Piece.t) ~(pieces:Piece.t Position.Map.t) ~(depth:int) ~(maximizing:bool) ~(curr_pos:Position.t) = 
+  let available_moves = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in 
+  if (depth = 0 || (match available_moves with | [] -> true | _ -> false))
+    then score ~me ~game_kind ~pieces
+  else if maximizing
+    then List.fold available_moves ~init:(Float.neg_infinity) ~f (fun value move -> ) 
+else
+    DO_SOMETHING
+
 ;;
