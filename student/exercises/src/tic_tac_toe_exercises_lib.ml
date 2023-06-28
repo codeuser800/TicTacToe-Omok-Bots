@@ -150,39 +150,35 @@ let rec eval_helper
 let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
   : Evaluation.t
   =
-  let len = Game_kind.board_length game_kind in
-  let board_1 =
-    List.init len ~f:(fun row ->
-      List.init len ~f:(fun col -> { Position.row; column = col }))
-  in
-  let board = List.concat board_1 in
+  let board = Map.keys pieces in
+  let win_len = Game_kind.win_length game_kind in
   let check_x_win =
     List.fold board ~init:Evaluation.Game_continues ~f:(fun acc position ->
       if eval_helper
            ~pieces
            ~game_kind
-           ~num_steps:len
+           ~num_steps:win_len
            ~direction:"ROW"
            ~piece:Piece.O
            ~curr_pos:position
          || eval_helper
               ~pieces
               ~game_kind
-              ~num_steps:len
+              ~num_steps:win_len
               ~direction:"COL"
               ~piece:Piece.O
               ~curr_pos:position
          || eval_helper
               ~pieces
               ~game_kind
-              ~num_steps:len
+              ~num_steps:win_len
               ~direction:"DIAG_RIGHT"
               ~piece:Piece.O
               ~curr_pos:position
          || eval_helper
               ~pieces
               ~game_kind
-              ~num_steps:len
+              ~num_steps:win_len
               ~direction:"DIAG_LEFT"
               ~piece:Piece.O
               ~curr_pos:position
@@ -199,28 +195,28 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
     if eval_helper
          ~pieces
          ~game_kind
-         ~num_steps:len
+         ~num_steps:win_len
          ~direction:"ROW"
          ~piece:Piece.X
          ~curr_pos:position
        || eval_helper
             ~pieces
             ~game_kind
-            ~num_steps:len
+            ~num_steps:win_len
             ~direction:"COL"
             ~piece:Piece.X
             ~curr_pos:position
        || eval_helper
             ~pieces
             ~game_kind
-            ~num_steps:len
+            ~num_steps:win_len
             ~direction:"DIAG_RIGHT"
             ~piece:Piece.X
             ~curr_pos:position
        || eval_helper
             ~pieces
             ~game_kind
-            ~num_steps:len
+            ~num_steps:win_len
             ~direction:"DIAG_LEFT"
             ~piece:Piece.X
             ~curr_pos:position

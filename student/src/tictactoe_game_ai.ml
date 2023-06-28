@@ -94,7 +94,8 @@ let rec minimax
   if depth = 0 || match available_moves with [] -> true | _ -> false
   then score ~me ~game_kind ~pieces
   else if maximizing
-  then
+  then (
+    let () = print_string (string_of_int depth) in
     List.fold available_moves ~init:Float.neg_infinity ~f:(fun value move ->
       let new_value =
         minimax
@@ -104,8 +105,9 @@ let rec minimax
           ~depth:(depth - 1)
           ~maximizing:(not maximizing)
       in
-      if Float.(new_value > value) then new_value else value)
-  else
+      if Float.(new_value > value) then new_value else value))
+  else (
+    let () = print_string (string_of_int depth) in
     List.fold available_moves ~init:Float.infinity ~f:(fun value move ->
       let new_value =
         minimax
@@ -115,7 +117,7 @@ let rec minimax
           ~depth:(depth - 1)
           ~maximizing:(not maximizing)
       in
-      if Float.(new_value < value) then new_value else value)
+      if Float.(new_value < value) then new_value else value))
 ;;
 
 (* [compute_next_move] is your Game AI's function.
@@ -135,7 +137,7 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
   in
   List.fold
     available_moves
-    ~init:{ Position.row = 0; column = 0 }
+    ~init:(List.random_element_exn available_moves)
     ~f:(fun best_move potential_move ->
     let score =
       minimax
@@ -147,3 +149,13 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
     in
     if Float.( = ) score Float.infinity then potential_move else best_move)
 ;;
+
+(* Minimax algo function *)
+
+(* let available_moves = Tic_tac_toe_exercises_lib.available_moves
+   ~game_kind:game_state.game_kind ~pieces:game_state.pieces in List.fold
+   available_moves ~init:{ Position.row = 0; column = 0 } ~f:(fun best_move
+   potential_move -> let score = minimax ~game_kind:game_state.game_kind ~me
+   ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me) ~depth:4
+   ~maximizing:true in if Float.( = ) score Float.infinity then
+   potential_move else best_move) *)
