@@ -139,30 +139,47 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
       ~game_kind:game_state.game_kind
       ~pieces:game_state.pieces
   in
-  let score, curr_pos =
-    ( score ~me ~game_kind:game_state.game_kind ~pieces:game_state.pieces
-    , List.random_element_exn available_moves )
+  let pot_winning_moves =
+    Tic_tac_toe_exercises_lib.winning_moves
+      ~me
+      ~game_kind:game_state.game_kind
+      ~pieces:game_state.pieces
   in
-  let _final_score, final_pos =
-    List.fold
-      available_moves
-      ~init:(score, curr_pos)
-      ~f:(fun (best_score, best_move) potential_move ->
-      let curr_score =
-        minimax
-          ~game_kind:game_state.game_kind
-          ~me
-          ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
-          ~depth:10
-          ~maximizing:true
-      in
-      (* let () = Async.print_s [%message (curr_score : float)
-         (potential_move : Position.t)] *)
-      if Float.( > ) curr_score best_score
-      then curr_score, potential_move
-      else best_score, best_move)
+  let losing_moves =
+    Tic_tac_toe_exercises_lib.losing_moves
+      ~me
+      ~game_kind:game_state.game_kind
+      ~pieces:game_state.pieces
   in
-  final_pos
+  if not (List.is_empty pot_winning_moves)
+  then List.random_element_exn pot_winning_moves
+  else if not (List.is_empty losing_moves)
+  then List.random_element_exn losing_moves
+  else (
+    let score, curr_pos =
+      ( score ~me ~game_kind:game_state.game_kind ~pieces:game_state.pieces
+      , List.random_element_exn available_moves )
+    in
+    let _final_score, final_pos =
+      List.fold
+        available_moves
+        ~init:(score, curr_pos)
+        ~f:(fun (best_score, best_move) potential_move ->
+        let curr_score =
+          minimax
+            ~game_kind:game_state.game_kind
+            ~me
+            ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
+            ~depth:10
+            ~maximizing:true
+        in
+        (* let () = Async.print_s [%message (curr_score : float)
+           (potential_move : Position.t)] *)
+        if Float.( > ) curr_score best_score
+        then curr_score, potential_move
+        else best_score, best_move)
+    in
+    final_pos)
 ;;
 
 (* Minimax algo function *)
