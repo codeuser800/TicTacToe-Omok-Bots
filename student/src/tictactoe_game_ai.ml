@@ -88,6 +88,7 @@ let rec minimax
   ~(depth : int)
   ~(maximizing : bool)
   =
+  let () = print_string "Here \n" in
   let available_moves =
     Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces
   in
@@ -98,8 +99,8 @@ let rec minimax
      || Float.( = ) score_curr Float.infinity
   then score_curr
   else if maximizing
-  then
-    (* let () = print_string (string_of_int depth) in *)
+  then (
+    let () = print_string (string_of_int depth) in
     List.fold available_moves ~init:Float.neg_infinity ~f:(fun value move ->
       let new_value =
         minimax
@@ -109,9 +110,9 @@ let rec minimax
           ~depth:(depth - 1)
           ~maximizing:(not maximizing)
       in
-      if Float.(new_value > value) then new_value else value)
-  else
-    (* let () = print_string (string_of_int depth) in *)
+      if Float.(new_value > value) then new_value else value))
+  else (
+    let () = print_string (string_of_int depth) in
     List.fold available_moves ~init:Float.infinity ~f:(fun value move ->
       let new_value =
         minimax
@@ -121,7 +122,7 @@ let rec minimax
           ~depth:(depth - 1)
           ~maximizing:(not maximizing)
       in
-      if Float.(new_value < value) then new_value else value)
+      if Float.(new_value < value) then new_value else value))
 ;;
 
 (* [compute_next_move] is your Game AI's function.
@@ -134,11 +135,13 @@ let rec minimax
 let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
   : Position.t
   =
+  let () = Core.print_s [%message "available moves"] in
   let available_moves =
     Tic_tac_toe_exercises_lib.available_moves
       ~game_kind:game_state.game_kind
       ~pieces:game_state.pieces
   in
+  let () = print_string "here winning" in
   let pot_winning_moves =
     Tic_tac_toe_exercises_lib.winning_moves
       ~me
@@ -170,11 +173,13 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
             ~game_kind:game_state.game_kind
             ~me
             ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
-            ~depth:10
+            ~depth:1
             ~maximizing:true
         in
-        (* let () = Async.print_s [%message (curr_score : float)
-           (potential_move : Position.t)] *)
+        let () =
+          Async.print_s
+            [%message (curr_score : float) (potential_move : Position.t)]
+        in
         if Float.( > ) curr_score best_score
         then curr_score, potential_move
         else best_score, best_move)
