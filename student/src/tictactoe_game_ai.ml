@@ -73,8 +73,9 @@ let score
   : float
   =
   let score = Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces in
-  (* let () = Async.print_s [%message (pieces : Piece.t Position.Map.t) (me :
-     Piece.t)] in *)
+  let () =
+    Core.print_s [%message (pieces : Piece.t Position.Map.t) (me : Piece.t)]
+  in
   match score with
   | Game_over { winner = Some someone } ->
     if Piece.equal someone me then Float.infinity else Float.neg_infinity
@@ -93,16 +94,17 @@ let rec minimax
   let available_moves =
     Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces
   in
+  (* let () = Core.print_s [%message (depth : int)] in *)
+  (* let () = Core.print_s [%message (available_moves : Position.t list)] in *)
   (* let () = Async.print_s [%message (maximizing : bool)] in *)
-  (* let () = Async.print_s [%message (available_moves : Position.t list)] in
-     let () = Async.print_s [%message (maximizing : bool)] in *)
   let score_curr = score ~me ~game_kind ~pieces in
   (* let () = Async.print_s [%message (score_curr : float)] in *)
   if depth = 0
      || List.length available_moves = 1
      || Float.( = ) score_curr Float.neg_infinity
      || Float.( = ) score_curr Float.infinity
-  then score_curr
+  then (* let () = Core.print_s [%message "here"] in *)
+    score_curr
   else if maximizing
   then (
     let max_elt =
@@ -164,13 +166,14 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
       ~game_kind:game_state.game_kind
       ~pieces:game_state.pieces
   in
+  (* let () = Core.print_s [%message "available moves"] in *)
   let first_move = List.random_element_exn available_moves in
   let score, curr_pos =
     ( minimax
         ~game_kind:game_state.game_kind
         ~me
         ~pieces:(Map.set game_state.pieces ~key:first_move ~data:me)
-        ~depth:3
+        ~depth:1
         ~maximizing:false
     , first_move )
   in
@@ -184,13 +187,11 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
           ~game_kind:game_state.game_kind
           ~me
           ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
-          ~depth:3
+          ~depth:2
           ~maximizing:false
       in
-      let () =
-        Async.print_s
-          [%message (curr_score : float) (potential_move : Position.t)]
-      in
+      (* let () = Core.print_s [%message (curr_score : float) (potential_move
+         : Position.t)] in *)
       if Float.( > ) curr_score best_score
       then curr_score, potential_move
       else best_score, best_move)
