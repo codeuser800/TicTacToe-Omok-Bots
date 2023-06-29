@@ -55,6 +55,81 @@ let non_win =
   |> place_piece ~piece:Piece.O ~position:{ Position.row = 2; column = 0 }
 ;;
 
+(*Tries to see if there are nearby pieces to a position within a specific
+  square*)
+let rec pieces_nearby
+  ~(pieces : Piece.t Position.Map.t)
+  ~(game_kind : Game_kind.t)
+  ~(num_steps : int)
+  ~(direction : string)
+  ~(curr_pos : Position.t)
+  : bool
+  =
+  if num_steps = 0
+  then false
+  else if not (Position.in_bounds curr_pos ~game_kind)
+  then false
+  else (
+    let piece_find = Map.find pieces curr_pos in
+    match piece_find with
+    | Some _piece_found -> true
+    | None ->
+      (match direction with
+       | "ROW" ->
+         pieces_nearby
+           ~pieces
+           ~game_kind
+           ~num_steps:(num_steps - 1)
+           ~direction
+           ~curr_pos:(Position.right curr_pos)
+       | "COL" ->
+         (* print_string (string_of_int num_steps); print_string
+            (Position.to_string curr_pos); *)
+         pieces_nearby
+           ~pieces
+           ~game_kind
+           ~num_steps:(num_steps - 1)
+           ~direction
+           ~curr_pos:(Position.down curr_pos)
+       | "DIAG_RIGHT" ->
+         pieces_nearby
+           ~pieces
+           ~game_kind
+           ~num_steps:(num_steps - 1)
+           ~direction
+           ~curr_pos:(Position.down curr_pos |> Position.right)
+       | "DIAG_LEFT" ->
+         pieces_nearby
+           ~pieces
+           ~game_kind
+           ~num_steps:(num_steps - 1)
+           ~direction
+           ~curr_pos:(Position.down curr_pos |> Position.left)
+       | _ -> false))
+;;
+
+let pieces_within_square
+  ~(pieces : Piece.t Position.Map.t)
+  ~(game_kind : Game_kind.t)
+  ~(num_steps : int)
+  ~(curr_pos : Position.t)
+  =
+  pieces_nearby ~pieces ~game_kind ~num_steps ~direction:"ROW" ~curr_pos
+  || pieces_nearby ~pieces ~game_kind ~num_steps ~direction:"COL" ~curr_pos
+  || pieces_nearby
+       ~pieces
+       ~game_kind
+       ~num_steps
+       ~direction:"DIAG_RIGHT"
+       ~curr_pos
+  || pieces_nearby
+       ~pieces
+       ~game_kind
+       ~num_steps
+       ~direction:"DIAG_LEFT"
+       ~curr_pos
+;;
+
 (* Exercise 1.
 
    For instructions on implemeting this refer to the README.
@@ -76,7 +151,16 @@ let available_moves
      in *)
   List.filter board ~f:(fun curr_piece ->
     let map_find = Map.find pieces curr_piece in
-    match map_find with Some _ -> false | None -> true)
+    match map_find with
+    | Some _ -> false
+    | None ->
+      if pieces_within_square
+           ~pieces
+           ~game_kind
+           ~num_steps:len
+           ~curr_pos:curr_piece
+      then true
+      else false)
 ;;
 
 (* Exercise 2.
