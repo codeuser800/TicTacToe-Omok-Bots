@@ -72,6 +72,8 @@ let available_moves
       List.init len ~f:(fun col -> { Position.row; column = col }))
   in
   let board = List.concat board_1 in
+  (* let set_board = Set.of_list (Position.t, Position.comparator) board
+     in *)
   List.filter board ~f:(fun curr_piece ->
     let map_find = Map.find pieces curr_piece in
     match map_find with Some _ -> false | None -> true)
