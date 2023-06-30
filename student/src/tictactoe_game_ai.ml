@@ -73,9 +73,8 @@ let score
   : float
   =
   let score = Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces in
-  let () =
-    Core.print_s [%message (pieces : Piece.t Position.Map.t) (me : Piece.t)]
-  in
+  (* let () = Core.print_s [%message (pieces : Piece.t Position.Map.t) (me :
+     Piece.t)] in *)
   match score with
   | Game_over { winner = Some someone } ->
     if Piece.equal someone me then Float.infinity else Float.neg_infinity
@@ -173,11 +172,11 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
         ~game_kind:game_state.game_kind
         ~me
         ~pieces:(Map.set game_state.pieces ~key:first_move ~data:me)
-        ~depth:1
+        ~depth:3
         ~maximizing:false
     , first_move )
   in
-  let final_score, final_pos =
+  let _final_score, final_pos =
     List.fold
       available_moves
       ~init:(score, curr_pos)
@@ -187,18 +186,19 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
           ~game_kind:game_state.game_kind
           ~me
           ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
-          ~depth:2
+          ~depth:3
           ~maximizing:false
       in
-      (* let () = Core.print_s [%message (curr_score : float) (potential_move
-         : Position.t)] in *)
+      let () =
+        Core.print_s
+          [%message (curr_score : float) (potential_move : Position.t)]
+      in
       if Float.( > ) curr_score best_score
       then curr_score, potential_move
       else best_score, best_move)
   in
-  let () =
-    Async.print_s [%message (final_score : float) (final_pos : Position.t)]
-  in
+  (* let () = Async.print_s [%message (final_score : float) (final_pos :
+     Position.t)] in *)
   final_pos
 ;;
 

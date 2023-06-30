@@ -149,18 +149,26 @@ let available_moves
   let board = List.concat board_1 in
   (* let set_board = Set.of_list (Position.t, Position.comparator) board
      in *)
-  List.filter board ~f:(fun curr_piece ->
-    let map_find = Map.find pieces curr_piece in
-    match map_find with
-    | Some _ -> false
-    | None ->
-      if pieces_within_square
-           ~pieces
-           ~game_kind
-           ~num_steps:len
-           ~curr_pos:curr_piece
-      then true
-      else false)
+  let adjacent_moves =
+    List.filter board ~f:(fun curr_piece ->
+      let map_find = Map.find pieces curr_piece in
+      match map_find with
+      | Some _ -> false
+      | None ->
+        if pieces_within_square
+             ~pieces
+             ~game_kind
+             ~num_steps:len
+             ~curr_pos:curr_piece
+        then true
+        else false)
+  in
+  if not (List.is_empty adjacent_moves)
+  then adjacent_moves
+  else
+    List.filter board ~f:(fun curr_piece ->
+      let map_find = Map.find pieces curr_piece in
+      match map_find with Some _ -> false | None -> true)
 ;;
 
 (* Exercise 2.
