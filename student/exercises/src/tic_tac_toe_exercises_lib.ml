@@ -130,6 +130,19 @@ let pieces_within_square
        ~curr_pos
 ;;
 
+let is_neighbor
+  ~(pieces : Piece.t Position.Map.t)
+  ~(game_kind : Game_kind.t)
+  ~(curr_pos : Position.t)
+  =
+  List.fold Position.all_offsets ~init:false ~f:(fun acc func ->
+    if Position.in_bounds (func curr_pos) ~game_kind
+    then (
+      let potential_pieces = Map.find pieces (func curr_pos) in
+      match potential_pieces with Some _piece -> true | None -> acc)
+    else acc)
+;;
+
 (* Exercise 1.
 
    For instructions on implemeting this refer to the README.
@@ -149,26 +162,8 @@ let available_moves
   let board = List.concat board_1 in
   (* let set_board = Set.of_list (Position.t, Position.comparator) board
      in *)
-  let adjacent_moves =
-    List.filter board ~f:(fun curr_piece ->
-      let map_find = Map.find pieces curr_piece in
-      match map_find with
-      | Some _ -> false
-      | None ->
-        if pieces_within_square
-             ~pieces
-             ~game_kind
-             ~num_steps:len
-             ~curr_pos:curr_piece
-        then true
-        else false)
-  in
-  if not (List.is_empty adjacent_moves)
-  then adjacent_moves
-  else
-    List.filter board ~f:(fun curr_piece ->
-      let map_find = Map.find pieces curr_piece in
-      match map_find with Some _ -> false | None -> true)
+  List.filter board ~f:(fun curr_piece ->
+    is_neighbor ~pieces ~game_kind ~curr_pos:curr_piece)
 ;;
 
 (* Exercise 2.
