@@ -74,17 +74,11 @@ let score
   =
   let score = Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces in
   (* let () = Core.print_s [%message (pieces : Piece.t Position.Map.t) (me :
-     Piece.t)] in -> call evaluate by keeping track of in the row in the
-     recursive call *)
+     Piece.t)] in *)
   match score with
   | Game_over { winner = Some someone } ->
     if Piece.equal someone me then Float.infinity else Float.neg_infinity
-  | _ ->
-    Tic_tac_toe_exercises_lib.score_eval ~game_kind ~pieces ~piece:me
-    -. Tic_tac_toe_exercises_lib.score_eval
-         ~game_kind
-         ~pieces
-         ~piece:(Piece.flip me)
+  | _ -> 0.0
 ;;
 
 let _ = score
