@@ -172,7 +172,7 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
         ~game_kind:game_state.game_kind
         ~me
         ~pieces:(Map.set game_state.pieces ~key:first_move ~data:me)
-        ~depth:3
+        ~depth:1
         ~maximizing:false
     , first_move )
   in
@@ -186,13 +186,11 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
           ~game_kind:game_state.game_kind
           ~me
           ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me)
-          ~depth:3
+          ~depth:1
           ~maximizing:false
       in
-      let () =
-        Core.print_s
-          [%message (curr_score : float) (potential_move : Position.t)]
-      in
+      (* let () = Core.print_s [%message (curr_score : float) (potential_move
+         : Position.t)] in *)
       if Float.( > ) curr_score best_score
       then curr_score, potential_move
       else best_score, best_move)
@@ -201,13 +199,3 @@ let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
      Position.t)] in *)
   final_pos
 ;;
-
-(* Minimax algo function *)
-
-(* let available_moves = Tic_tac_toe_exercises_lib.available_moves
-   ~game_kind:game_state.game_kind ~pieces:game_state.pieces in List.fold
-   available_moves ~init:{ Position.row = 0; column = 0 } ~f:(fun best_move
-   potential_move -> let score = minimax ~game_kind:game_state.game_kind ~me
-   ~pieces:(Map.set game_state.pieces ~key:potential_move ~data:me) ~depth:4
-   ~maximizing:true in if Float.( = ) score Float.infinity then
-   potential_move else best_move) *)

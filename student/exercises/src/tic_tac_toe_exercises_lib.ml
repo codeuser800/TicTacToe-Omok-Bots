@@ -143,28 +143,62 @@ let is_neighbor
     else acc)
 ;;
 
+let available_moves_omok
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  : Position.t list
+  =
+  let moves =
+    let len = Game_kind.board_length game_kind in
+    let board_1 =
+      List.init len ~f:(fun row ->
+        List.init len ~f:(fun col -> { Position.row; column = col }))
+    in
+    let board = List.concat board_1 in
+    (* let set_board = Set.of_list (Position.t, Position.comparator) board
+       in *)
+    List.filter board ~f:(fun curr_piece ->
+      is_neighbor ~pieces ~game_kind ~curr_pos:curr_piece
+      &&
+      let is_occupied = Map.find pieces curr_piece in
+      match is_occupied with None -> true | Some _piece -> false)
+  in
+  if List.is_empty moves
+  then (
+    let () = Core.print_s [%message "Here"] in
+    [ { Position.row = 7; column = 7 } ])
+  else moves
+;;
+
+let available_moves
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  : Position.t list
+  =
+  match game_kind with
+  | Tic_tac_toe ->
+    let len = Game_kind.board_length game_kind in
+    let board_1 =
+      List.init len ~f:(fun row ->
+        List.init len ~f:(fun col -> { Position.row; column = col }))
+    in
+    let board = List.concat board_1 in
+    (* let set_board = Set.of_list (Position.t, Position.comparator) board
+       in *)
+    List.filter board ~f:(fun curr_piece ->
+      let map_find = Map.find pieces curr_piece in
+      match map_find with Some _ -> false | None -> true)
+  | Omok -> available_moves_omok ~game_kind ~pieces
+;;
+
+let _ = pieces_within_square
+
 (* Exercise 1.
 
    For instructions on implemeting this refer to the README.
 
    After you are done with this implementation, you can uncomment out
    "evaluate" test cases found below in this file. *)
-let available_moves
-  ~(game_kind : Game_kind.t)
-  ~(pieces : Piece.t Position.Map.t)
-  : Position.t list
-  =
-  let len = Game_kind.board_length game_kind in
-  let board_1 =
-    List.init len ~f:(fun row ->
-      List.init len ~f:(fun col -> { Position.row; column = col }))
-  in
-  let board = List.concat board_1 in
-  (* let set_board = Set.of_list (Position.t, Position.comparator) board
-     in *)
-  List.filter board ~f:(fun curr_piece ->
-    is_neighbor ~pieces ~game_kind ~curr_pos:curr_piece)
-;;
 
 (* Exercise 2.
 
