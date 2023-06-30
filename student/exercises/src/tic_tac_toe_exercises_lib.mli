@@ -1,4 +1,4 @@
-open Core
+open! Core
 open Tic_tac_toe_2023_common
 open Protocol
 
@@ -40,6 +40,15 @@ val losing_moves
   -> game_kind:Game_kind.t
   -> pieces:Piece.t Position.Map.t
   -> Position.t list
+
+(* val score_eval : game_kind : Game_kind.t -> pieces : Piece.t
+   Position.Map.t -> piece : Piece.t *)
+
+val score_eval
+  :  game_kind:Game_kind.t
+  -> pieces:Piece.t Position.Map.t
+  -> piece:Piece.t
+  -> float
 
 (** The below commands provide debugging/visibility into the different
     exercises for your bot. *)

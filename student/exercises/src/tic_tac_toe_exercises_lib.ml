@@ -1,4 +1,4 @@
-open Core
+open! Core
 open Tic_tac_toe_2023_common
 open Protocol
 
@@ -358,6 +358,113 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
       | Evaluation.Game_continues -> Evaluation.Game_continues
       | Evaluation.Illegal_state -> Evaluation.Illegal_state
       | _ -> Evaluation.Game_continues))
+;;
+
+let rec score_helper
+  ~(pieces : Piece.t Position.Map.t)
+  ~(game_kind : Game_kind.t)
+  ~(num_steps : int)
+  ~(direction : string)
+  ~(piece : Piece.t)
+  ~(curr_pos : Position.t)
+  ~(row : float)
+  : float
+  =
+  if num_steps = 0
+  then row
+  else if not (Position.in_bounds curr_pos ~game_kind)
+  then row
+  else (
+    let piece_find = Map.find pieces curr_pos in
+    match piece_find with
+    | None -> 0.
+    | Some piece_found ->
+      if not (Piece.equal piece_found piece)
+      then 0.
+      else (
+        match direction with
+        | "ROW" ->
+          score_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.right curr_pos)
+            ~row:(row +. 1.)
+        | "COL" ->
+          (* print_string (string_of_int num_steps); print_string
+             (Position.to_string curr_pos); *)
+          score_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos)
+            ~row:(row +. 1.)
+        | "DIAG_RIGHT" ->
+          score_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos |> Position.right)
+            ~row:(row +. 1.)
+        | "DIAG_LEFT" ->
+          score_helper
+            ~pieces
+            ~game_kind
+            ~num_steps:(num_steps - 1)
+            ~direction
+            ~piece
+            ~curr_pos:(Position.down curr_pos |> Position.left)
+            ~row:(row +. 1.)
+        | _ -> 0.))
+;;
+
+let score_eval
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(piece : Piece.t)
+  =
+  let board = Map.keys pieces in
+  let win_len = Game_kind.win_length game_kind in
+  List.fold board ~init:0. ~f:(fun acc position ->
+    acc
+    +. score_helper
+         ~pieces
+         ~game_kind
+         ~num_steps:win_len
+         ~direction:"ROW"
+         ~piece
+         ~curr_pos:position
+         ~row:0.
+    +. score_helper
+         ~pieces
+         ~game_kind
+         ~num_steps:win_len
+         ~direction:"COL"
+         ~piece
+         ~curr_pos:position
+         ~row:0.
+    +. score_helper
+         ~pieces
+         ~game_kind
+         ~num_steps:win_len
+         ~direction:"DIAG_RIGHT"
+         ~piece
+         ~curr_pos:position
+         ~row:0.
+    +. score_helper
+         ~pieces
+         ~game_kind
+         ~num_steps:win_len
+         ~direction:"DIAG_LEFT"
+         ~piece
+         ~curr_pos:position
+         ~row:0.)
 ;;
 
 (* Exercise 3. *)
